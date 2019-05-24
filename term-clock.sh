@@ -133,11 +133,11 @@ do
   # this greps for the shell PID, filters out the bash process running the clock, and looks for any FG process
   fg_proc="$(ps -e -o state= -o ppid= -o comm= | grep -Fw $shell_pid | grep -v "bash" | grep -F '+')"
 
-  # and only update the clock if this iTerm tab is the active one
+  # and only update the clock if the iTerm tab is the active one
+  active_tab_id="$(active_iterm_tab_id 2>/dev/null)"
 
-  # TODO: handle "60:86: execution error: iTerm got an error: Can’t get current window. (-1728)" error
-  # (and clean up this logic)
-  if [ -z "$fg_proc" ] && [[ -z "$iterm_id" || "$iterm_id" == "$(active_iterm_tab_id)" ]]
+  # TODO: clean up this logic
+  if [ -z "$fg_proc" ] && [[ -z "$iterm_id" || "$iterm_id" == "$active_tab_id" ]]
   then
     # need to do these calculations every time
     if [ -n "$date_fmt" ]
