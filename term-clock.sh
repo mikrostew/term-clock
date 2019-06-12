@@ -108,22 +108,6 @@ do
   # otherwise this will continue running when the session exits, because it has open terminal file handles
   # (see https://stackoverflow.com/a/8123399)
   if ! kill -0 $shell_pid 2>/dev/null; then exit 0; fi
-  #
-  # $ ps -e -o ppid= -o pid= -o user= -o command= | grep "sleep 1"
-  # 44171 20066 mikrostew        sleep 1
-  # 45203 20068 mikrostew        sleep 1
-  # 89572 20069 mikrostew        sleep 1
-  # 47244 20071 mikrostew        sleep 1
-  # 86790 20072 mikrostew        sleep 1
-  # 48661 20083 mikrostew        sleep 1
-  # 63464 20084 mikrostew        sleep 1
-  # 85330 20090 mikrostew        sleep 1
-  #  5968 20109 mikrostew        sleep 1
-  # 13536 20110 mikrostew        sleep 1
-  # 14535 20111 mikrostew        sleep 1
-  # 92865 20122 mikrostew        sleep 1
-  # 84829 20123 mikrostew        sleep 1
-  # 84788 20125 mikrostew        grep --color=auto sleep 1
 
   # if there is a foreground process running, don't update the clock
   # (adapted from https://unix.stackexchange.com/a/273785)
@@ -136,7 +120,8 @@ do
   # and only update the clock if the iTerm tab is the active one
   active_tab_id="$(active_iterm_tab_id 2>/dev/null)"
 
-  # TODO: clean up this logic
+  # if there are no FG processes, and
+  # either there is no Iterm ID, or that ID is the active tab
   if [ -z "$fg_proc" ] && [[ -z "$iterm_id" || "$iterm_id" == "$active_tab_id" ]]
   then
     # need to do these calculations every time
