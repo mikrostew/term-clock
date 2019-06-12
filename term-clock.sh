@@ -135,20 +135,20 @@ do
       curr_datetime="$(date)"
     fi
 
-    # TODO: track the CWD of the parent process (using lsof I guess)
-    parent_pwd="$HOME/dotfiles"
+    # track the CWD of the parent process
+    # (from https://unix.stackexchange.com/q/94357)
+    parent_pwd="$(lsof -p $shell_pid | awk '$4=="cwd" {print $9}')"
     cd "$parent_pwd"
 
     # TODO: this should be passed in as an option, instead of hard-coded
-    full_status="status: $(repo_status), time: $curr_datetime"
+    full_status="$(repo_status)    $curr_datetime"
 
-    # TODO: this should strip out any colors and escape codes before calculating the length,
-    #       because those are counted too, even though they are not printable
-    # TODO: use this:
-    #       sed $'s/\x1b\\[[0-9;]*[mGK]//g'
-    #       (from https://stackoverflow.com/q/17998978)
-    #       the leading dollar sign is to interpret the escape sequences
-    #       (see https://stackoverflow.com/q/11966312)
+    #  this strips out any colors and escape codes before calculating the length,
+    #  because those are counted too, even though they are not printable
+    #  (from https://stackoverflow.com/q/17998978)
+    #
+    #  the leading dollar sign is to interpret the escape sequences
+    #  (see https://stackoverflow.com/q/11966312)
     full_status_nocolor="$(echo "$full_status" | sed $'s/\x1b\\[[0-9;]*[mGK]//g' )"
 
     display_width="${#full_status_nocolor}"
