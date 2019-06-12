@@ -104,6 +104,15 @@ fi
 # TODO: this should be in a separate script, so I can call it instead of sourcing and calling the function
 source "$HOME/dotfiles/.bash_repo_status"
 
+# TODO: instead of sleeping, can I wait/block forever, and handle a periodic signal?
+#       see:
+#       https://unix.stackexchange.com/questions/156131/can-i-trap-a-clock-signal-in-my-bash-script
+#       https://stackoverflow.com/questions/27694818/interrupt-sleep-in-bash-with-a-signal-trap
+#       https://unix.stackexchange.com/questions/55558/how-can-i-kill-and-wait-for-background-processes-to-finish-in-a-shell-script-whe
+#       https://stackoverflow.com/questions/2935183/bash-infinite-sleep-infinite-blocking
+#
+#       this _might_ avoid the "sleep" being shown in the terminal header? because that is slightly annoying
+
 # update every $update_int seconds
 while sleep $update_int
 do
@@ -150,6 +159,28 @@ do
     #  the leading dollar sign is to interpret the escape sequences
     #  (see https://stackoverflow.com/q/11966312)
     full_status_nocolor="$(echo "$full_status" | sed $'s/\x1b\\[[0-9;]*[mGK]//g' )"
+
+    # TODO: in the case of navigating away from a git repo, I will need to overwrite the previous status
+    #       so maybe always overwrite the entire line?
+
+    # TODO: set one line that doesn't scroll, and write everything to that?
+    # (https://www.reddit.com/r/commandline/comments/14i82e/bash_static_line_while_output_is_scrolling/)
+    #
+    # * this is easy-ish if `hs` (hardstatus) is supported: https://www.gnu.org/software/termutils/manual/termcap-1.3/html_node/termcap_41.html
+    #   but it is not supported in iTerm:
+    #   $ tput hs; echo $?
+    #   1
+    #
+    # * maybe using `cs` (change scroll region)? https://www.gnu.org/software/termutils/manual/termcap-1.3/html_node/termcap_28.html
+    #   looks like that is supported:
+    #   $ tput cs
+    #   %p1%d;%p2%dr
+    #   this works, doing something like so to avoid the cursor jumping to the top of the screen:
+    #   $ tput sc; tput cs 1 $LINES; tput rc
+    #   that prevents the top line from scrolling, BUT I lose all history of things that scroll off the screen, so that's not great
+    #
+    # * maybe there's something I can set/use with tmux?
+    #   yeah, looks like I can add this to the status line, then most of this script is not necessary (awesome!)
 
     display_width="${#full_status_nocolor}"
     term_width="$(tput cols)"
