@@ -101,6 +101,9 @@ then
   iterm_id="${BASH_REMATCH[1]}"
 fi
 
+# TODO: this should be in a separate script, so I can call it instead of sourcing and calling the function
+source "$HOME/dotfiles/.bash_repo_status"
+
 # update every $update_int seconds
 while sleep $update_int
 do
@@ -132,7 +135,23 @@ do
       curr_datetime="$(date)"
     fi
 
-    display_width="${#curr_datetime}"
+    # TODO: track the CWD of the parent process (using lsof I guess)
+    parent_pwd="$HOME/dotfiles"
+    cd "$parent_pwd"
+
+    # TODO: this should be passed in as an option, instead of hard-coded
+    full_status="status: $(repo_status), time: $curr_datetime"
+
+    # TODO: this should strip out any colors and escape codes before calculating the length,
+    #       because those are counted too, even though they are not printable
+    # TODO: use this:
+    #       sed $'s/\x1b\\[[0-9;]*[mGK]//g'
+    #       (from https://stackoverflow.com/q/17998978)
+    #       the leading dollar sign is to interpret the escape sequences
+    #       (see https://stackoverflow.com/q/11966312)
+    full_status_nocolor="$(echo "$full_status" | sed $'s/\x1b\\[[0-9;]*[mGK]//g' )"
+
+    display_width="${#full_status_nocolor}"
     term_width="$(tput cols)"
     # plus 1 to account for the space on either side (plus 2 leaves 2 spaces to the right)
     col_offset="$(( $term_width - ($display_width + 1) ))"
@@ -142,7 +161,7 @@ do
       move_cursor="$(printf "$move_cursor_str" "$col_offset")"
       # do the positioning and output all in one go, outputting to stderr
       # (with a space before and after the date for readability)
-      echo -en "${save_cursor}${move_cursor} ${curr_datetime} ${restore_cursor}" >&2
+      echo -en "${save_cursor}${move_cursor} ${full_status} ${restore_cursor}" >&2
     fi
   fi
 done
